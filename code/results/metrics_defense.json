@@ -1,0 +1,216 @@
+{
+  "stage": "defense",
+  "n_samples": 48,
+  "image_size": [
+    512,
+    512,
+    3
+  ],
+  "seed": 42,
+  "tau": 0.5,
+  "delta_a": 0.02,
+  "pairs": {
+    "Id|D0": {
+      "attack_id": "Id",
+      "defense_id": "D0",
+      "n": 48,
+      "auc": 0.96875,
+      "tpr": 1.0,
+      "fpr": 0.6458333333333334,
+      "embed_success_rate": 1.0,
+      "attack_success_rate": 1.0,
+      "detect_success_rate": 1.0,
+      "embed_valid_rate": 1.0,
+      "attack_valid_rate": 1.0,
+      "embed_quality_rate": 1.0,
+      "attack_quality_rate": 1.0,
+      "embed_quality": {
+        "ssim": 0.9922813536234906,
+        "psnr": 48.24487641546322,
+        "n": 48
+      },
+      "attack_quality": {
+        "ssim": 1.0,
+        "psnr": Infinity,
+        "n": 48
+      },
+      "joint_quality": {
+        "ssim": 0.9922813536234906,
+        "psnr": 48.24487641546322,
+        "n": 48
+      },
+      "time_embed": 3.1487948000103643,
+      "time_attack": 0.06263559998842538,
+      "time_detect": 3.4077983000061067
+    },
+    "Id|null_defense": {
+      "attack_id": "Id",
+      "defense_id": "null_defense",
+      "n": 48,
+      "auc": 0.5,
+      "tpr": 1.0,
+      "fpr": 1.0,
+      "embed_success_rate": 1.0,
+      "attack_success_rate": 1.0,
+      "detect_success_rate": 1.0,
+      "embed_valid_rate": 1.0,
+      "attack_valid_rate": 1.0,
+      "embed_quality_rate": 1.0,
+      "attack_quality_rate": 1.0,
+      "embed_quality": {
+        "ssim": 1.0,
+        "psnr": Infinity,
+        "n": 48
+      },
+      "attack_quality": {
+        "ssim": 1.0,
+        "psnr": Infinity,
+        "n": 48
+      },
+      "joint_quality": {
+        "ssim": 1.0,
+        "psnr": Infinity,
+        "n": 48
+      },
+      "time_embed": 0.01792599999680533,
+      "time_attack": 0.0317593999861856,
+      "time_detect": 0.018415300008200575
+    },
+    "A0|D0": {
+      "attack_id": "A0",
+      "defense_id": "D0",
+      "n": 48,
+      "auc": 0.9164496527777778,
+      "tpr": 0.9791666666666666,
+      "fpr": 0.625,
+      "embed_success_rate": 1.0,
+      "attack_success_rate": 1.0,
+      "detect_success_rate": 1.0,
+      "embed_valid_rate": 1.0,
+      "attack_valid_rate": 1.0,
+      "embed_quality_rate": 1.0,
+      "attack_quality_rate": 0.7916666666666666,
+      "embed_quality": {
+        "ssim": 0.9922813536234906,
+        "psnr": 48.24487641546322,
+        "n": 48
+      },
+      "attack_quality": {
+        "ssim": 0.9495822062935027,
+        "psnr": 37.94555135513857,
+        "n": 48
+      },
+      "joint_quality": {
+        "ssim": 0.9822794249418886,
+        "psnr": 42.27510658911003,
+        "n": 48
+      },
+      "time_embed": 1.249977800031047,
+      "time_attack": 3.1936482999881264,
+      "time_detect": 1.3145640999973693
+    },
+    "A0|null_defense": {
+      "attack_id": "A0",
+      "defense_id": "null_defense",
+      "n": 48,
+      "auc": 0.5,
+      "tpr": 1.0,
+      "fpr": 1.0,
+      "embed_success_rate": 1.0,
+      "attack_success_rate": 1.0,
+      "detect_success_rate": 1.0,
+      "embed_valid_rate": 1.0,
+      "attack_valid_rate": 1.0,
+      "embed_quality_rate": 1.0,
+      "attack_quality_rate": 0.7916666666666666,
+      "embed_quality": {
+        "ssim": 1.0,
+        "psnr": Infinity,
+        "n": 48
+      },
+      "attack_quality": {
+        "ssim": 0.9557807851544932,
+        "psnr": 38.92628512129314,
+        "n": 48
+      },
+      "joint_quality": {
+        "ssim": 0.9844269022030449,
+        "psnr": Infinity,
+        "n": 48
+      },
+      "time_embed": 0.017659400014963467,
+      "time_attack": 3.2860098000164726,
+      "time_detect": 0.014057500004128087
+    }
+  },
+  "matrix": {
+    "attacks": [
+      "Id",
+      "A0"
+    ],
+    "defenses": [
+      "D0",
+      "null_defense"
+    ],
+    "auc": {
+      "Id": {
+        "D0": 0.96875,
+        "null_defense": 0.5
+      },
+      "A0": {
+        "D0": 0.9164496527777778,
+        "null_defense": 0.5
+      }
+    }
+  },
+  "attack_metrics": {
+    "clean_auc_id_d0": 0.96875,
+    "attack_auc_a0_d0": 0.9164496527777778,
+    "auc_drop": 0.05230034722222221,
+    "attack_success": true,
+    "delta_a": 0.02,
+    "attack_mean_auc_R_A": 0.7082248263888888,
+    "attack_strength": 0.29177517361111116,
+    "tpr_fpr_id_d0": {
+      "tpr": 1.0,
+      "fpr": 0.6458333333333334
+    },
+    "tpr_fpr_a0_d0": {
+      "tpr": 0.9791666666666666,
+      "fpr": 0.625
+    },
+    "attack_quality_a0_d0": {
+      "ssim": 0.9495822062935027,
+      "psnr": 37.94555135513857,
+      "n": 48
+    },
+    "attack_quality_rate_a0_d0": 0.7916666666666666,
+    "attack_valid_rate_a0_d0": 1.0,
+    "time_attack_total_s": 3.1936482999881264
+  },
+  "defense_metrics": {
+    "clean_auc": 0.96875,
+    "robust_auc_a0": 0.9164496527777778,
+    "robustness_drop": 0.05230034722222221,
+    "defense_mean_auc_R_D": 0.9425998263888888,
+    "min_auc": 0.9164496527777778,
+    "tpr_fpr_clean": {
+      "tpr": 1.0,
+      "fpr": 0.6458333333333334
+    },
+    "tpr_fpr_robust": {
+      "tpr": 0.9791666666666666,
+      "fpr": 0.625
+    },
+    "embed_quality_id_d0": {
+      "ssim": 0.9922813536234906,
+      "psnr": 48.24487641546322,
+      "n": 48
+    },
+    "embed_quality_rate_id_d0": 1.0,
+    "embed_valid_rate_id_d0": 1.0,
+    "detect_success_rate_id_d0": 1.0,
+    "time_embed_total_s": 3.1487948000103643,
+    "time_detect_total_s": 3.4077983000061067
+  }
+}
