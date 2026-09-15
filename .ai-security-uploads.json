@@ -1,0 +1,13 @@
+{
+  "workDirId": "mu2ixeq2nr2e71",
+  "scenario": "watermark_image",
+  "role": "solo_attack",
+  "version": 7,
+  "uploadedAt": "2026-09-15T10:23:39.139Z",
+  "files": [
+    "requirements.txt",
+    "solution.py",
+    "attack-submission-solution.zip",
+    "meta.json"
+  ]
+}
