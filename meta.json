@@ -1,0 +1,23 @@
+{
+  "workDirId": "mu2h2ukgfgjxfv",
+  "branch": "atk-1120233215",
+  "uploaderBranch": true,
+  "githubAccount": "boxinliang123",
+  "displayName": "梁博心",
+  "scenario": "watermark_image",
+  "role": "solo_attack",
+  "userId": "66dfc9fa-1c27-4c32-8e54-a3b7a73c4efa",
+  "version": 3,
+  "originalZipName": "attack-submission.zip",
+  "archivedZip": true,
+  "uploadedAt": "2026-09-15T09:31:41.012Z",
+  "files": [
+    "README.md",
+    "attack-blank.py",
+    "attack.py",
+    "config.yaml",
+    "requirements.txt",
+    "attack-submission.zip"
+  ],
+  "skippedLargeFiles": []
+}
