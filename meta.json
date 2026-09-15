@@ -1,0 +1,23 @@
+{
+  "workDirId": "mu2bi16ms8hxde",
+  "branch": "atk-1120233215",
+  "uploaderBranch": true,
+  "githubAccount": "boxinliang123",
+  "displayName": "梁博心",
+  "scenario": "watermark_image",
+  "role": "solo_attack",
+  "userId": "66dfc9fa-1c27-4c32-8e54-a3b7a73c4efa",
+  "version": 1,
+  "originalZipName": "watermarkguard_attack.zip",
+  "archivedZip": true,
+  "uploadedAt": "2026-09-15T06:55:33.100Z",
+  "files": [
+    "README.md",
+    "attack-blank.py",
+    "requirements.txt",
+    "solution.py",
+    "wm_attack.py",
+    "watermarkguard_attack.zip"
+  ],
+  "skippedLargeFiles": []
+}
