@@ -1,0 +1,228 @@
+import numpy as np
+try:
+    import io as _io
+    from PIL import Image as _PILImage
+    from PIL import ImageFilter as _PILFilter
+    _HAS_PIL = True
+except Exception:
+    _HAS_PIL = False
+FORCE_NUMPY_JPEG = False
+MODE = 'LIGHT'
+CFG = {'jpeg_quality': 75, 'scale': 0.9, 'blur_sigma': 0.4, 'desync_ratio': 0.094, 'desync_min': 2, 'psnr_min': 29.0, 'ssim_min': 0.92}
+
+def _to_u8(a):
+    return np.clip(np.rint(a), 0, 255).astype(np.uint8)
+
+def _psnr(a, b):
+    d = a.astype(np.float32) - b.astype(np.float32)
+    mse = float(np.mean(d * d, dtype=np.float64))
+    return float('inf') if mse <= 0.0 else 10.0 * np.log10(255.0 * 255.0 / mse)
+
+def _box_mean(a, win):
+    C = np.zeros((a.shape[0] + 1, a.shape[1] + 1), dtype=np.float32)
+    C[1:, 1:] = np.cumsum(np.cumsum(a, axis=0, dtype=np.float32), axis=1, dtype=np.float32)
+    S = C[win:, win:] - C[:-win, win:] - C[win:, :-win] + C[:-win, :-win]
+    return S / float(win * win)
+
+def _ssim(a, b, win=8):
+    return _ssim32(a.astype(np.float32), b.astype(np.float32), win)
+
+def _ssim32(a, b, win=8):
+    if a.ndim == 3:
+        return float(np.mean([_ssim32(a[..., c], b[..., c], win) for c in range(a.shape[2])]))
+    step = 1
+    while max(a.shape) // (step * 2) >= 192:
+        step *= 2
+    if step > 1:
+        a = a[::step, ::step]
+        b = b[::step, ::step]
+    if min(a.shape) < win:
+        return 1.0
+    ma = _box_mean(a, win)
+    mb = _box_mean(b, win)
+    va = _box_mean(a * a, win) - ma * ma
+    vb = _box_mean(b * b, win) - mb * mb
+    cov = _box_mean(a * b, win) - ma * mb
+    c1, c2 = ((0.01 * 255.0) ** 2, (0.03 * 255.0) ** 2)
+    s = (2.0 * ma * mb + c1) * (2.0 * cov + c2) / ((ma ** 2 + mb ** 2 + c1) * (va + vb + c2))
+    return float(s.mean())
+
+def _resize_last(a, out_len):
+    n = a.shape[-1]
+    if out_len == n:
+        return a.astype(np.float32, copy=True)
+    a = a.astype(np.float32)
+    if out_len > n:
+        s = np.clip((np.arange(out_len) + 0.5) * (n / out_len) - 0.5, 0.0, n - 1.0)
+        i0 = np.floor(s).astype(np.int64)
+        f = (s - i0).astype(np.float32)
+        i1 = np.minimum(i0 + 1, n - 1)
+        return a[..., i0] * (1.0 - f) + a[..., i1] * f
+    cp = np.zeros(a.shape[:-1] + (n + 1,), dtype=np.float32)
+    np.cumsum(a, axis=-1, out=cp[..., 1:])
+    e = np.linspace(0.0, n, out_len + 1, dtype=np.float32)
+    e0, e1 = (e[:-1], e[1:])
+    i0 = np.minimum(np.floor(e0).astype(np.int64), n - 1)
+    i1 = np.minimum(np.floor(e1).astype(np.int64), n - 1)
+    f0, f1 = (e0 - i0, e1 - i1)
+    lo = cp[..., i0] + f0 * (cp[..., i0 + 1] - cp[..., i0])
+    hi = cp[..., i1] + f1 * (cp[..., i1 + 1] - cp[..., i1])
+    return (hi - lo) / (e1 - e0)
+
+def _resize2d(a, out_h, out_w):
+    a = _resize_last(a, out_w)
+    return _resize_last(a.T, out_h).T
+
+def _resize_rgb(a, out_h, out_w):
+    return np.stack([_resize2d(a[..., c], out_h, out_w) for c in range(a.shape[2])], axis=-1)
+
+def _blur_rgb(a, sigma):
+    if sigma <= 0:
+        return a.astype(np.float32)
+    if _HAS_PIL:
+        try:
+            out = _PILImage.fromarray(_to_u8(a)).filter(_PILFilter.GaussianBlur(float(sigma)))
+            return np.asarray(out, dtype=np.float32)
+        except Exception:
+            pass
+    r = max(1, int(np.ceil(3.0 * sigma)))
+    x = np.arange(-r, r + 1, dtype=np.float32)
+    k = np.exp(-x ** 2 / (2.0 * sigma * sigma))
+    k /= k.sum()
+
+    def conv(v, axis):
+        pad = [(0, 0)] * v.ndim
+        pad[axis] = (r, r)
+        p = np.pad(v, pad, mode='edge')
+        out = np.zeros_like(v, dtype=np.float32)
+        for idx, kv in enumerate(k):
+            sl = [slice(None)] * v.ndim
+            sl[axis] = slice(idx, idx + v.shape[axis])
+            out += kv * p[tuple(sl)]
+        return out
+    return np.stack([conv(conv(a[..., c].astype(np.float32), 0), 1) for c in range(a.shape[2])], axis=-1)
+_LUMA_Q = np.array([[16, 11, 10, 16, 24, 40, 51, 61], [12, 12, 14, 19, 26, 58, 60, 55], [14, 13, 16, 24, 40, 57, 69, 56], [14, 17, 22, 29, 51, 87, 80, 62], [18, 22, 37, 56, 68, 109, 103, 77], [24, 35, 55, 64, 81, 104, 113, 92], [49, 64, 78, 87, 103, 121, 120, 101], [72, 92, 95, 98, 112, 100, 103, 99]], dtype=np.float32)
+_CHROMA_Q = np.array([[17, 18, 24, 47, 99, 99, 99, 99], [18, 21, 26, 66, 99, 99, 99, 99], [24, 26, 56, 99, 99, 99, 99, 99], [47, 66, 99, 99, 99, 99, 99, 99], [99, 99, 99, 99, 99, 99, 99, 99], [99, 99, 99, 99, 99, 99, 99, 99], [99, 99, 99, 99, 99, 99, 99, 99], [99, 99, 99, 99, 99, 99, 99, 99]], dtype=np.float32)
+
+def _dct_matrix():
+    n = np.arange(8, dtype=np.float64)
+    k = np.arange(8, dtype=np.float64).reshape(-1, 1)
+    T = np.cos(np.pi * (2.0 * n + 1.0) * k / 16.0) * np.sqrt(2.0 / 8.0)
+    T[0] *= np.sqrt(0.5)
+    return T.astype(np.float32)
+_DCT = _dct_matrix()
+
+def _quantize_plane(a, qtable):
+    h, w = a.shape
+    ph, pw = (-h % 8, -w % 8)
+    if ph or pw:
+        a = np.pad(a, ((0, ph), (0, pw)), mode='edge')
+    H, W = a.shape
+    blocks = a.reshape(H // 8, 8, W // 8, 8).transpose(0, 2, 1, 3)
+    coef = np.einsum('ij,...jk,lk->...il', _DCT, blocks, _DCT)
+    coef = np.round(coef / qtable) * qtable
+    rec = np.einsum('ji,...jk,kl->...il', _DCT, coef, _DCT)
+    return rec.transpose(0, 2, 1, 3).reshape(H, W)[:h, :w]
+
+def _jpeg_numpy(img, quality):
+    q = float(np.clip(quality, 1, 100))
+    scale = 5000.0 / q if q < 50 else 200.0 - 2.0 * q
+    ql = np.clip(np.floor((_LUMA_Q * scale + 50.0) / 100.0), 1, 255)
+    qc = np.clip(np.floor((_CHROMA_Q * scale + 50.0) / 100.0), 1, 255)
+    x = img.astype(np.float32)
+    y = 0.299 * x[..., 0] + 0.587 * x[..., 1] + 0.114 * x[..., 2]
+    cb = 128.0 - 0.168736 * x[..., 0] - 0.331264 * x[..., 1] + 0.5 * x[..., 2]
+    cr = 128.0 + 0.5 * x[..., 0] - 0.418688 * x[..., 1] - 0.081312 * x[..., 2]
+    h, w = img.shape[:2]
+    y = _quantize_plane(y, ql)
+    hc, wc = (max(1, (h + 1) // 2), max(1, (w + 1) // 2))
+    cb = _resize2d(_quantize_plane(_resize2d(cb, hc, wc), qc), h, w)
+    cr = _resize2d(_quantize_plane(_resize2d(cr, hc, wc), qc), h, w)
+    r = y + 1.402 * (cr - 128.0)
+    g = y - 0.344136 * (cb - 128.0) - 0.714136 * (cr - 128.0)
+    b = y + 1.772 * (cb - 128.0)
+    return _to_u8(np.stack([r, g, b], axis=-1))
+
+def _jpeg(img, quality):
+    if _HAS_PIL and (not FORCE_NUMPY_JPEG):
+        try:
+            buf = _io.BytesIO()
+            _PILImage.fromarray(img).save(buf, format='JPEG', quality=int(quality), subsampling=2, optimize=False)
+            buf.seek(0)
+            with _PILImage.open(buf) as im:
+                return np.asarray(im.convert('RGB'), dtype=np.uint8)
+        except Exception:
+            pass
+    return _jpeg_numpy(img, quality)
+
+def _stage_desync(img, cfg):
+    h, w = img.shape[:2]
+    k = int(round(min(h, w) * cfg['desync_ratio']))
+    k = min(max(cfg['desync_min'], k), max(1, min(h, w) // 4))
+    core = img[k:, k:]
+    if core.shape[0] < 8 or core.shape[1] < 8:
+        return img.astype(np.float32)
+    return _resize_rgb(core.astype(np.float32), h, w)
+
+def _stage_budget(x, y, cfg, use_ssim):
+    xf = x.astype(np.float32)
+    e = y.astype(np.float32) - xf
+    mse = float(np.mean(e * e, dtype=np.float64))
+    if mse <= 1e-12:
+        return x
+    target = 255.0 ** 2 / 10.0 ** (cfg['psnr_min'] / 10.0)
+    alpha = min(1.0, float(np.sqrt(target / mse)) * 0.995)
+    smin = cfg['ssim_min']
+    if use_ssim and smin is not None and (_ssim32(xf, xf + alpha * e) < smin):
+        lo, hi = (0.0, alpha)
+        for _ in range(6):
+            mid = 0.5 * (lo + hi)
+            if _ssim32(xf, xf + mid * e) >= smin:
+                lo = mid
+            else:
+                hi = mid
+        alpha = lo
+    out = _to_u8(xf + alpha * e)
+    for _ in range(3):
+        if _psnr(x, out) >= cfg['psnr_min']:
+            break
+        alpha *= 0.95
+        out = _to_u8(xf + alpha * e)
+    return out
+
+def attack(sample: dict) -> dict:
+    image = np.asarray(sample['image'])
+    if image.ndim != 3 or image.shape[2] != 3 or image.size == 0:
+        return {'image': image.copy()}
+    x = _to_u8(image)
+    cfg = CFG
+    if MODE == 'A0':
+        y = _jpeg(x, cfg['jpeg_quality'])
+        h, w = y.shape[:2]
+        y = _resize_rgb(y, max(1, int(round(h * cfg['scale']))), max(1, int(round(w * cfg['scale']))))
+        y = _to_u8(_blur_rgb(_resize_rgb(y, h, w), cfg['blur_sigma']))
+        y = _stage_budget(x, y, cfg, True)
+    elif MODE == 'LIGHT':
+        y = _stage_budget(x, _stage_desync(x, cfg), cfg, False)
+    else:
+        y = _to_u8(_blur_rgb(_jpeg(x, cfg['jpeg_quality']), cfg['blur_sigma']))
+        y = _stage_budget(x, _stage_desync(y, cfg), cfg, True)
+    if y.shape != x.shape or float(np.std(y)) < 1e-06:
+        y = x
+    return {'image': np.ascontiguousarray(y.astype(np.uint8))}
+
+
+class Solution:
+    """Old-engine entry point: platform calls Solution(work_dir).attack(sample)."""
+
+    def __init__(self, work_dir=None):
+        self.work_dir = work_dir
+
+    def attack(self, sample: dict) -> dict:
+        return attack(sample)
+
+    def run(self, sample: dict) -> dict:
+        return attack(sample)
+
+    def __call__(self, sample: dict) -> dict:
+        return attack(sample)
