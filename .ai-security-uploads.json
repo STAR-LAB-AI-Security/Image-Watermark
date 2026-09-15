@@ -1,0 +1,13 @@
+{
+  "workDirId": "mu2i7yaha9vk7f",
+  "scenario": "watermark_image",
+  "role": "solo_attack",
+  "version": 5,
+  "uploadedAt": "2026-09-15T10:03:49.796Z",
+  "files": [
+    "attack-blank.py",
+    "requirements.txt",
+    "attack-submission-noop.zip",
+    "meta.json"
+  ]
+}
