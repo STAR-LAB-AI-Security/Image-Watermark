@@ -1,0 +1,27 @@
+# WatermarkGuard-Image 攻击方提交配置
+role: attack
+entry: attack-blank.py
+function: attack
+mode: LIGHT                 # LIGHT(最快最强) | STRONG(守 SSIM) | A0(平台基线)
+
+runtime:
+  cpu_only: true
+  gpu: false
+  network: false            # 不联网、不查询检测器、不使用外部数据
+  deterministic: true       # 同一输入恒得同一输出
+  per_sample_ms:            # 实测（单核 CPU，512×512 高细节图，最坏情况）
+    light_32: 0.8
+    light_512: 100
+    strong_512: 320
+
+quality:
+  psnr_min: 29.0            # 平台红线 28 dB，留 1 dB 余量
+  ssim_min: 0.92            # 仅 STRONG 档生效
+
+method:
+  name: 分块去对齐 + 质量预算回拉
+  stages:
+    - desync_crop_rescale   # 裁掉边缘后缩放回原尺寸，破坏 8×8 分块相位
+    - quality_budget        # 解析解定 PSNR 上限，必要时对 SSIM 二分
+  desync_ratio: 0.094
+  params_randomized: false  # 不使用随机数；如需参数分布化可用 sample_id 定种
