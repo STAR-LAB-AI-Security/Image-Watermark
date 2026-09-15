@@ -1,0 +1,20 @@
+{
+  "workDirId": "mu2ifpmncwf8wo",
+  "branch": "atk-1120233215",
+  "uploaderBranch": true,
+  "githubAccount": "boxinliang123",
+  "displayName": "梁博心",
+  "scenario": "watermark_image",
+  "role": "solo_attack",
+  "userId": "66dfc9fa-1c27-4c32-8e54-a3b7a73c4efa",
+  "version": 6,
+  "originalZipName": "attack-submission-noop.zip",
+  "archivedZip": true,
+  "uploadedAt": "2026-09-15T10:09:40.425Z",
+  "files": [
+    "attack-blank.py",
+    "requirements.txt",
+    "attack-submission-noop.zip"
+  ],
+  "skippedLargeFiles": []
+}
