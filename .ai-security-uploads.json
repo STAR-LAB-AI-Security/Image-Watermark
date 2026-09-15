@@ -1,0 +1,16 @@
+{
+  "workDirId": "mu2bi16ms8hxde",
+  "scenario": "watermark_image",
+  "role": "solo_attack",
+  "version": 1,
+  "uploadedAt": "2026-09-15T06:55:41.916Z",
+  "files": [
+    "README.md",
+    "attack-blank.py",
+    "requirements.txt",
+    "solution.py",
+    "wm_attack.py",
+    "watermarkguard_attack.zip",
+    "meta.json"
+  ]
+}
