@@ -1,0 +1,11 @@
+{
+  "workDirId": "mu74mxi6b5g8vn",
+  "scenario": "watermark_image",
+  "role": "solo_attack",
+  "version": 11,
+  "uploadedAt": "2026-09-18T15:42:21.816Z",
+  "files": [
+    "attack.py",
+    "meta.json"
+  ]
+}
