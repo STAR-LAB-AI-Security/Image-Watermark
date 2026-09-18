@@ -1,0 +1,30 @@
+{
+  "workDirId": "mu6r5ly5wxdcvf",
+  "branch": "atk-NDK0",
+  "uploaderBranch": true,
+  "githubAccount": "NDK0",
+  "displayName": "马艺华",
+  "scenario": "watermark_image",
+  "role": "solo_attack",
+  "userId": "4c646a21-e9b1-4cb0-94af-8553e43fb55c",
+  "version": 2,
+  "originalZipName": "wm-atk.zip",
+  "archivedZip": true,
+  "uploadedAt": "2026-09-18T09:24:50.542Z",
+  "files": [
+    "README.md",
+    "attack-backend.py",
+    "attack-blank.py",
+    "attack.py",
+    "dataset.py",
+    "defense-backend.py",
+    "defense-blank.py",
+    "defense.py",
+    "requirements.txt",
+    "run_attack.sh",
+    "run_defense.sh",
+    "test.py",
+    "wm-atk.zip"
+  ],
+  "skippedLargeFiles": []
+}
