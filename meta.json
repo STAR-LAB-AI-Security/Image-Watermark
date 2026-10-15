@@ -1,0 +1,18 @@
+{
+  "workDirId": "mv95lzxzcasi0u",
+  "branch": "atk-wacl123",
+  "uploaderBranch": true,
+  "githubAccount": "waaccll1123-sudo",
+  "displayName": "陈朗",
+  "scenario": "watermark_image",
+  "role": "solo_attack",
+  "userId": "5ea9ed2c-f70a-4f6c-afb4-84b94103f329",
+  "version": 1,
+  "originalZipName": "attack.py",
+  "archivedZip": false,
+  "uploadedAt": "2026-10-15T06:24:45.786Z",
+  "files": [
+    "attack.py"
+  ],
+  "skippedLargeFiles": []
+}
